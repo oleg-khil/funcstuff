@@ -1,0 +1,4 @@
+/.direnv/
+.nixd.json
+.ruby-lsp/
+/.gems

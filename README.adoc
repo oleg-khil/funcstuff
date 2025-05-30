@@ -1,0 +1,129 @@
+= Funcstuff
+:reproducible:
+
+A collection of small and minimalistic libraries with implementations of concepts found in functional languages
+
+== Requirements and dependencies
+
+Only ruby 3 (ruby 3.4.3 is tested and was used) is required
+ +
+To run test just run `rake` without arguments
+
+
+== Curry
+
+Module, with method decorator which allows to define https://en.wikipedia.org/wiki/Curried[curried] methods
+
+== Fcompose
+
+Class for https://en.wikipedia.org/wiki/Function_composition_(computer_science)[composing] methods and lambdas to pass them to methods
+
+[source,ruby]
+----
+f = F . to_s . chomp >> ->(x) { x[1..-2] } >> :to_i
+(1988...1992).to_a.map(&f) # => [98, 98, 99, 99]
+----
+
+== Let
+
+Class that implements micro DSL for https://en.wikipedia.org/wiki/Let_expression[let expression]
+ +
+Bindings are lazily evaluated and memoized, scope of blocks execution allow usage of caller's object methods
+ +
+Functions can be defined if binding block is evaluated to Proc
+ +
+Example from link:spec/let_spec.rb[test]
+
+[source,ruby]
+----
+class ClassForTest
+  def b
+    1
+  end
+
+  def x
+    10
+  end
+
+  def z
+    123
+  end
+
+  def math
+    Let.(:a) { 1 }
+       .(:b) { 2 }
+       .(:c) { x * 2 }
+       .(:plus) { ->(v1, v2) { v1 + v2 } }
+       .in { plus(a, b) + c + z }
+  end
+end
+----
+
+== Typeclass
+
+Implementation of module that allows defining https://en.wikipedia.org/wiki/Typeclass[typeclasses]
+ +
+Also contains example typeclass ToNix, typeclass that allows to serialize value as nix expression, and instances for several classes
+ +
+Typeclass can be derived if default implementation is provided for all methods
+
+== Monad
+
+Implementation of https://en.wikipedia.org/wiki/Maybe_monad[Maybe] and https://hackage.haskell.org/package/base-4.21.0.0/docs/Prelude.html#t:Either[Either] monads via typeclass
+ +
+Monads implement all required functions (methods) and satisfy https://wiki.haskell.org/index.php?title=Monad_laws[Monad laws] (see link:spec/monad_spec.rb[])
+ +
+https://docs.ruby-lang.org/en/master/syntax/pattern_matching_rdoc.html[Pattern matching] is implemented for Maybe and Either
+ +
+Also https://en.wikibooks.org/wiki/Haskell/do_notation[do notation] is implemented in form of regular method, not method decorator, that means that there is no need for separate classes, methods and module inclusions to use do notation
+
+[source,ruby]
+----
+Maybe.return(1).bind { Just[_1 + 1] }.bind(&:to_s) # => Just "2"
+
+Either.return(9).bind { Right[_1 / 3] } # => Right 3
+                .bind do |v|
+                  if value % 2 == 0
+                    Right[value]
+                  else
+                    Left[value]
+                  end
+                end # => Left 3
+                .bind { raise "not evaluated, so no raise occurs" } # => Left 3
+
+----
+More usage examples, including do notation is available in link:spec/monad_spec.rb[]
+
+
+== Functor
+
+Implementation of https://en.wikipedia.org/wiki/Functor_(functional_programming)[functor] (fmap) via typeclass for Array (map), Either and Maybe
+
+[source,ruby]
+----
+Maybe.return(1).fmap { _1 + 2 } # => Just[3]
+----
+
+
+== Typed methods
+
+Implementation of type checking for methods. Regular types and Typeclass constraints are supported
+ +
+Example (not complete) from link:spec/typed_methods_spec.rb[test]
+
+[source,ruby]
+----
+class ClassForTest
+  def_typed(:typed, Integer >> Numeric >> Numeric) do |a,b|
+    a + b
+  end
+
+  def_typed(:typeclass_constrained, TypeClassConstraint[Show] >> String >> String) do
+    |a, prefix|
+    prefix + a.show
+  end
+
+  # see more in spec/typed_methods_spec.rb
+end
+----
+
