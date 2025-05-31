@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "curry"
-
 class ClassForTest
   extend Curry
 
@@ -27,4 +25,3 @@ describe Curry do
     end
   end
 end
-

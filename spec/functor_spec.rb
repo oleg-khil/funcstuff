@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "functor"
-
 describe "Functor" do
   describe "with Maybe" do
     let(:just) { Just[1] }
@@ -63,4 +61,3 @@ describe "Functor" do
     end
   end
 end
-

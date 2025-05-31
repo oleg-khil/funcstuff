@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "fcompose"
-
 describe "F" do
   describe "expression value" do
     let(:array) { (123..321).to_a }
@@ -41,4 +39,3 @@ describe "F" do
     end
   end
 end
-

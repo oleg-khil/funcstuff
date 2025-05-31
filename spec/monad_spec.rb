@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "monad"
-
 describe Maybe do
   describe "self.return" do
     let(:klass) { Maybe }
@@ -11,7 +9,7 @@ describe Maybe do
 
       describe "left identity" do
         let(:a) { 2 }
-        let(:h) { ->(x) { monad.return x * 2 }}
+        let(:h) { ->(x) { monad.return x * 2 } }
 
         it "is expected to satisfy" do
           _(monad.return(a).bind(&h)).must_equal h.call(a)
@@ -116,7 +114,7 @@ describe Either do
 
       describe "left identity" do
         let(:a) { 2 }
-        let(:h) { ->(x) { monad.return x * 2 }}
+        let(:h) { ->(x) { monad.return x * 2 } }
 
         it "is expected to satisfy" do
           _(monad.return(a).bind(&h)).must_equal h.call(a)
@@ -206,7 +204,7 @@ describe Monad do
       run_after_failure = false
       result = Monad.do do |&bind|
         bind.(Right[1])
-        run_before_failure= true
+        run_before_failure = true
         bind.(Left[2])
         run_after_failure = true
         bind.(Right[3])
@@ -261,4 +259,3 @@ describe Monad do
     end
   end
 end
-

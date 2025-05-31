@@ -67,6 +67,28 @@ Also contains example typeclass ToNix, typeclass that allows to serialize value 
  +
 Typeclass can be derived if default implementation is provided for all methods
 
+== Functor
+
+Implementation of https://en.wikipedia.org/wiki/Functor_(functional_programming)[functor] (fmap) via typeclass for Array (map), Either and Maybe
+
+[source,ruby]
+----
+Maybe.return(1).fmap { _1 + 2 } # => Just[3]
+----
+
+== Applicative
+
+Implementation of https://wiki.haskell.org/Applicative_functor[applicative] (perhaps not all functions are implemented yet, <*> as ap and pure are implemented) via typeclass for Array (map), Either and Maybe
+
+[source,ruby]
+----
+[
+  ->(x) { x },
+  ->(x) { x + 5 },
+  ->(x) { x + 10 }
+].ap [1, 2, 3, 4] # => [1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14]
+----
+
 == Monad
 
 Implementation of https://en.wikipedia.org/wiki/Maybe_monad[Maybe] and https://hackage.haskell.org/package/base-4.21.0.0/docs/Prelude.html#t:Either[Either] monads via typeclass
@@ -95,19 +117,9 @@ Either.return(9).bind { Right[_1 / 3] } # => Right 3
 More usage examples, including do notation is available in link:spec/monad_spec.rb[]
 
 
-== Functor
-
-Implementation of https://en.wikipedia.org/wiki/Functor_(functional_programming)[functor] (fmap) via typeclass for Array (map), Either and Maybe
-
-[source,ruby]
-----
-Maybe.return(1).fmap { _1 + 2 } # => Just[3]
-----
-
-
 == Typed methods
 
-Implementation of type checking for methods. Regular types and Typeclass constraints are supported
+Implementation of type checking for methods and lambdas. Regular types and Typeclass constraints are supported
  +
 Example (not complete) from link:spec/typed_methods_spec.rb[test]
 

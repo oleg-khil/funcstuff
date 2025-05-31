@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "let"
-
 class ClassForTest
   def b
     1
@@ -49,4 +47,3 @@ describe "Let" do
     end
   end
 end
-

@@ -9,7 +9,7 @@ module Minitest
 
   class SimpleColors < Minitest::AbstractReporter
     ESC    = "\e["
-    RESET    = "#{ESC}0m"
+    RESET  = "#{ESC}0m"
     GREEN  = "#{ESC}32m"
     RED    = "#{ESC}31m"
     YELLOW = "#{ESC}33m"
@@ -37,4 +37,3 @@ module Minitest
     end
   end
 end
-

@@ -2,3 +2,4 @@
 .nixd.json
 .ruby-lsp/
 /.gems
+/README.html

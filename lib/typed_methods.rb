@@ -54,6 +54,114 @@ class Type
   def to_s(...)
     inspect(...)
   end
+
+  def lambda(method_name = "lambda", &impl)
+    unless impl
+      raise ArgumentError, "No block passed to #{__method__}"
+    end
+
+    type = self
+    ->(*args, **kwargs, &block) {
+      if (args.size != type.args_types.size)
+        raise(ArgumentError,
+              "Wrong number of arguments\n" \
+              "expected #{type.args_types.size}\n" \
+              "got #{args.size}\n" \
+              "#{method_name} #{type.inspect}\n")
+      end
+
+      args_types_missmatch = args.zip(type.args_types).any? do |a, t|
+        case t
+        in TypeClassConstraint
+          !t.satisfy? a.class
+        else
+          !a.is_a?(t)
+        end
+      end
+
+      if args_types_missmatch
+        raise(TypeError,
+              "Arguments type missmatch\n" \
+              "expected #{type.args_types.inspect}\n" \
+              "got #{args.map(&:class).inspect}\n" \
+              "#{method_name} #{type.inspect}\n")
+      end
+
+      result = impl.call(*args, **kwargs, &block)
+
+      result_type_correct = if type.return_type.is_a?(TypeClassConstraint)
+                                type.return_type.satisfy? result.class
+                              else
+                                result.is_a?(type.return_type)
+                              end
+      unless result_type_correct
+        raise(TypeError,
+              "Return value type missmatch\n" \
+              "expected: #{type.return_type.inspect}\n" \
+              "got: #{result.class.inspect}\n" \
+              "#{method_name} #{type.inspect}\n")
+      end
+
+      result
+    }
+  end
+
+  def lambda_curried(method_name = "lambda", &impl)
+    unless impl
+      raise ArgumentError, "No block passed to #{__method__}"
+    end
+
+    type = self
+    ->(*args, **kwargs, &block) {
+      if (args.size > type.args_types.size)
+        raise(ArgumentError,
+              "Wrong number of arguments\n" \
+              "expected 1-#{type.args_types.size}\n" \
+              "got #{args.size}\n" \
+              "#{method_name} #{type.inspect}\n")
+      end
+      expected_types = type.args_types.take(args.size)
+
+      args_types_missmatch = args.zip(expected_types).any? do |a, t|
+        case t
+        in TypeClassConstraint
+          !t.satisfy? a.class
+        else
+          !a.is_a?(t)
+        end
+      end
+
+      if args_types_missmatch
+        raise(TypeError,
+              "Arguments type missmatch\n" \
+              "expected #{expected_types.inspect}\n" \
+              "got #{args.map(&:class).inspect}\n" \
+              "#{method_name} #{type.inspect}\n")
+      end
+
+      result = impl.curry.call(*args, **kwargs, &block)
+
+      if result.is_a?(Proc)
+        return result
+      end
+
+      result_type_correct = if type.return_type.is_a?(TypeClassConstraint)
+                                type.return_type.satisfy? result.class
+                              else
+                                result.is_a?(type.return_type)
+                              end
+
+      unless result_type_correct
+        raise(TypeError,
+              "Return value type missmatch\n" \
+              "expected: #{type.return_type.inspect}\n" \
+              "got: #{result.class.inspect}\n" \
+              "#{method_name} #{type.inspect}\n")
+      end
+
+      result
+    }
+  end
 end
 
 class TypeClassConstraint
@@ -68,7 +176,6 @@ class TypeClassConstraint
 
     new(*typeclasses)
   end
-
 
   def represent(typevariable)
     if @typeclasses.size == 1
@@ -117,49 +224,9 @@ class Module
       raise ArgumentError, "No block passed to #{__method__}"
     end
 
-    define_method(method_name) do |*args, **kwargs, &block|
-      if (args.size != type.args_types.size)
-        raise(ArgumentError,
-              "Wrong number of arguments\n" \
-              "expected #{type.args_types.size}\n" \
-              "got #{args.size}\n" \
-              "#{method_name} #{type.inspect}\n")
-      end
+    method = type.lambda(method_name, &impl)
 
-      args_types_missmatch = args.zip(type.args_types).any? do |a, t|
-        case t
-        in TypeClassConstraint
-          !t.satisfy? a.class
-        else
-          !a.is_a?(t)
-        end
-      end
-
-      if args_types_missmatch
-        raise(TypeError,
-              "Arguments type missmatch\n" \
-              "expected #{type.args_types.inspect}\n" \
-              "got #{args.map(&:class).inspect}\n" \
-              "#{method_name} #{type.inspect}\n")
-      end
-
-      result = impl.call(*args, **kwargs, &block)
-
-      result_type_correct = if type.return_type.is_a?(TypeClassConstraint)
-                                type.return_type.satisfy? result.class
-                              else
-                                result.is_a?(type.return_type)
-                              end
-      unless result_type_correct
-        raise(TypeError,
-              "Return value type missmatch\n" \
-              "expected: #{type.return_type.inspect}\n" \
-              "got: #{result.class.inspect}\n" \
-              "#{method_name} #{type.inspect}\n")
-      end
-
-      result
-    end
+    define_method(method_name, &method)
   end
 
   def def_typed_curried(method_name, type, &impl)
@@ -171,55 +238,8 @@ class Module
       raise ArgumentError, "No block passed to #{__method__}"
     end
 
-    define_method(method_name) do |*args, **kwargs, &block|
-      if (args.size > type.args_types.size)
-        raise(ArgumentError,
-              "Wrong number of arguments\n" \
-              "expected 1-#{type.args_types.size}\n" \
-              "got #{args.size}\n" \
-              "#{method_name} #{type.inspect}\n")
-      end
-      expected_types = type.args_types.take(args.size)
+    method = type.lambda_curried(method_name, &impl)
 
-      args_types_missmatch = args.zip(expected_types).any? do |a, t|
-        case t
-        in TypeClassConstraint
-          !t.satisfy? a.class
-        else
-          !a.is_a?(t)
-        end
-      end
-
-      # if (args.zip(expected_types).any? { !_1.is_a?(_2) })
-      if args_types_missmatch
-        raise(TypeError,
-              "Arguments type missmatch\n" \
-              "expected #{expected_types.inspect}\n" \
-              "got #{args.map(&:class).inspect}\n" \
-              "#{method_name} #{type.inspect}\n")
-      end
-
-      result = impl.curry.call(*args, **kwargs, &block)
-
-      if result.is_a?(Proc)
-        return result
-      end
-
-      result_type_correct = if type.return_type.is_a?(TypeClassConstraint)
-                                type.return_type.satisfy? result.class
-                              else
-                                result.is_a?(type.return_type)
-                              end
-
-      unless result_type_correct
-        raise(TypeError,
-              "Return value type missmatch\n" \
-              "expected: #{type.return_type.inspect}\n" \
-              "got: #{result.class.inspect}\n" \
-              "#{method_name} #{type.inspect}\n")
-      end
-
-      result
-    end
+    define_method(method_name, method)
   end
 end

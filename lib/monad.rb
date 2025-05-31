@@ -1,12 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "typeclass"
-
-module SquareBracketsInitialize
-  def [](...)
-    new(...)
-  end
-end
+require_relative "applicative"
 
 Monad = TypeClass.new(
   bind: nil,
@@ -71,60 +65,14 @@ class Maybe
     define_singleton_method(:return, &instance_method(:return).bind(new).to_proc)
     undef_method(:return)
   end
-  make_typeclass_instance(
-    Eq,
-    :== => ->(other) {
-      case [self, other]
-      in [None, None]
-        true
-      in [Just[x], Just[y]]
-        x == y
-      else
-        false
-      end
-    }
-  )
 end
 
 class Just < Maybe
   singleton_class.undef_method(:return)
-  extend SquareBracketsInitialize
-
-  def initialize(value)
-    @value = value
-  end
-
-  def deconstruct(...)
-    [@value]
-  end
-
-  def inspect(...)
-    "Just #{@value.inspect}"
-  end
-
-  def to_s(...)
-    inspect(...)
-  end
 end
 
 class None < Maybe
   singleton_class.undef_method(:return)
-  extend SquareBracketsInitialize
-
-  def initialize(...)
-  end
-
-  def deconstruct(...)
-    []
-  end
-
-  def inspect(...)
-    "None"
-  end
-
-  def to_s(...)
-    inspect(...)
-  end
 end
 
 class Either
@@ -149,61 +97,14 @@ class Either
     define_singleton_method(:return, &instance_method(:return).bind(new).to_proc)
     undef_method(:return)
   end
-
-  make_typeclass_instance(
-    Eq,
-    :== => ->(other) {
-      case [self, other]
-      in [Left[x], Left[y]]
-        x == y
-      in [Right[x], Right[y]]
-        x == y
-      else
-        false
-      end
-    }
-  )
-
-  def self.capture(&block)
-    Right[yield]
-  rescue StandardError => e
-    Left[e]
-  end
-
-  module Common
-    def initialize(value)
-      @value = value
-    end
-
-    def deconstruct(...)
-      [@value]
-    end
-
-    def to_s(...)
-      inspect(...)
-    end
-  end
-  private_constant :Common
 end
 
 class Right < Either
   singleton_class.undef_method(:return)
-  extend SquareBracketsInitialize
-  include Either.const_get(:Common)
-
-  def inspect(...)
-    "Right #{@value.inspect}"
-  end
 end
 
 class Left < Either
   singleton_class.undef_method(:return)
-  extend SquareBracketsInitialize
-  include Either.const_get(:Common)
-
-  def inspect(...)
-    "Left #{@value.inspect}"
-  end
 end
 
 module Enumerable
