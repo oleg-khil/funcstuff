@@ -1,6 +1,6 @@
 = Funcstuff
 :reproducible:
-:toc:
+:toc: preamble
 
 A collection of small and minimalistic libraries with implementations of concepts found in functional languages
 
