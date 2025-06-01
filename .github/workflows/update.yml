@@ -21,7 +21,20 @@ jobs:
         name: updated-flake-lock
         path: flake.lock
 
-  tests:
+  tests-after-push:
+    if: ${{ github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, macos-13]
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@main
+      with:
+        diagnostic-endpoint: "http://127.0.0.1:80"
+    - run: nix develop --command -- rake
+
+  tests-after-update:
     needs: [update-flake]
     strategy:
       matrix:
@@ -40,7 +53,7 @@ jobs:
 
   push-update:
     if: ${{ github.ref_name == github.event.repository.default_branch }}
-    needs: tests
+    needs: tests-after-update
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
