@@ -3,3 +3,4 @@
 .ruby-lsp/
 /.gems
 /README.html
+/funcstuff-*.gem

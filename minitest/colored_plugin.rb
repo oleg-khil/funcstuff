@@ -4,7 +4,7 @@ module Minitest
   def self.plugin_colored_init(options)
     io = options.fetch(:io, $stdout)
     self.reporter.reporters << SimpleColors.new(io)
-    self.reporter.reporters.reject! { it.is_a? ProgressReporter }
+    self.reporter.reporters.reject! { _1.is_a? ProgressReporter }
   end
 
   class SimpleColors < Minitest::AbstractReporter

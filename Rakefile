@@ -13,7 +13,7 @@ Minitest::TestTask.create(:spec) do |t|
   t.warning = false
   t.test_globs = ["spec/*_spec.rb"]
   t.test_prelude = [
-    'require "lib/all"',
+    'require "lib/funcstuff"',
     'require "minitest"',
     'require "minitest/hell"'
   ]
