@@ -76,6 +76,26 @@ describe Maybe do
     end
   end
 
+  describe "to_either" do
+    subject { maybe_value.to_either }
+
+    describe "when value is Just" do
+      let(:maybe_value) { Just[1] }
+
+      it "is expected to flip to Right keeping original value" do
+        _(subject).must_equal Right[1]
+      end
+    end
+
+    describe "when value is None" do
+      let(:maybe_value) { None[] }
+
+      it "is expected to flip to Left with None class as value" do
+        _(subject).must_equal Left[None]
+      end
+    end
+  end
+
   describe Just do
     let(:klass) { Just }
 
@@ -170,6 +190,46 @@ describe Either do
 
           _(run).must_equal false
         end
+      end
+    end
+  end
+
+  describe "flip" do
+    subject { either_value.flip }
+
+    describe "when value is Right" do
+      let(:either_value) { Right[1] }
+
+      it "is expected to flip to Left" do
+        _(subject).must_equal Left[1]
+      end
+    end
+
+    describe "when value is Left" do
+      let(:either_value) { Left[2] }
+
+      it "is expected to flip to Right" do
+        _(subject).must_equal Right[2]
+      end
+    end
+  end
+
+  describe "to_maybe" do
+    subject { either_value.to_maybe }
+
+    describe "when value is Right" do
+      let(:either_value) { Right[1] }
+
+      it "is expected to result in Just keeping original value" do
+        _(subject).must_equal Just[1]
+      end
+    end
+
+    describe "when value is Left" do
+      let(:either_value) { Left[2] }
+
+      it "is expected to result in None losing original value" do
+        _(subject).must_equal None[]
       end
     end
   end

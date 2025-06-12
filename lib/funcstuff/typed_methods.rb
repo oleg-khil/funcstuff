@@ -61,7 +61,7 @@ class Type
     end
 
     type = self
-    ->(*args, **kwargs, &block) {
+    result = ->(*args, **kwargs, &block) {
       if (args.size != type.args_types.size)
         raise(ArgumentError,
               "Wrong number of arguments\n" \
@@ -104,6 +104,10 @@ class Type
 
       result
     }
+
+    result.define_singleton_method(:type) { type }
+
+    result
   end
 
   def lambda_curried(method_name = "lambda", &impl)
@@ -162,6 +166,10 @@ class Type
       result
     }
   end
+
+  def ==(other)
+    (args_types == other.args_types) && (return_type == other.return_type)
+  end
 end
 
 class TypeClassConstraint
@@ -205,6 +213,10 @@ class TypeClassConstraint
 
   def initialize(*typeclasses)
     @typeclasses = typeclasses
+  end
+
+  def ==(other)
+    @typeclasses == other.instance_variable_get("@typeclasses")
   end
 end
 

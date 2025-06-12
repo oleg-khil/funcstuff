@@ -15,6 +15,14 @@ class Maybe
       end
     }
   )
+  def to_either
+    case self
+    in Just[x]
+      Right[x]
+    in None
+      Left[None]
+    end
+  end
 end
 
 class Just < Maybe

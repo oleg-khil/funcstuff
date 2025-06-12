@@ -1,3 +1,4 @@
+require_relative "maybe"
 require_relative "typeclass"
 require_relative "square_brackets_initialize"
 
@@ -20,6 +21,24 @@ class Either
     Right[yield]
   rescue StandardError => e
     Left[e]
+  end
+
+  def flip
+    case self
+    in Right[x]
+      Left[x]
+    in Left[x]
+      Right[x]
+    end
+  end
+
+  def to_maybe
+    case self
+    in Right[x]
+      Just[x]
+    in Left
+      None[]
+    end
   end
 
   module Common

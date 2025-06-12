@@ -321,6 +321,12 @@ describe "typed_methods" do
           _ { fn.call 1, 2.0.to_s, 3 }.must_raise ArgumentError
         end
       end
+
+      describe "must have type method that returns type of lambda" do
+        let(:method_name) { :typed }
+
+        it { _(fn.type).must_equal (Integer >> Numeric >> Numeric)  }
+      end
     end
   end
 end
