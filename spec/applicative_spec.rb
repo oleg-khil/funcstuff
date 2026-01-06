@@ -2,12 +2,12 @@
 
 describe Applicative do
   describe Array do
-    it("is not implemented yet")
+    it("is TODO")
   end
   describe Maybe do
-    it("is not implemented yet")
+    it("is TODO")
   end
   describe Either do
-    it("is not implemented yet")
+    it("is TODO")
   end
 end

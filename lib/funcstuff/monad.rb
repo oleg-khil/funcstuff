@@ -8,13 +8,17 @@ Monad = TypeClass.new(
   # for full monad interface, but i dont think it is really needed cuz its not lazy on argument
   :>> => ->(x) { self.bind { x } }
 ) do
-  def do(&blk)
+  def do(type = false, &blk)
     raise ArgumentError, "No block provided" unless blk
 
     dummy_value = Class.new.new
     result = blk.call do |value|
       unless value.class.typeclass_instances.include?(Monad)
         raise(TypeError, "yielded value is not monad")
+      end
+
+      if type && !value.is_a?(type)
+        raise(TypeError, "yielded value is not #{type}")
       end
 
       ran = false
@@ -37,6 +41,11 @@ Monad = TypeClass.new(
     unless result.class.typeclass_instances.include?(Monad)
       raise(TypeError,
             "Value returned by last expression of do block is not Monad")
+    end
+
+    if type && !result.is_a?(type)
+      raise(TypeError,
+            "Value returned by last expression of do block is not #{type}")
     end
 
     result

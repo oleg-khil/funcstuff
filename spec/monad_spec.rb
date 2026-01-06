@@ -307,13 +307,68 @@ describe Monad do
       }.must_raise TypeError
     end
 
-    it "is expected to raise if last expression is not Monad" do
-      _ {
-        Monad.do do |&bind|
-          bind.(Right[1])
-          bind.(Right[2])
+    it "is expected to work as expected if yielded value is of expected type" do
+      result1 = Monad.do(Either) do |&bind|
+        bind.(Right[1])
+        bind.(Right[2])
 
-          3
+        Right[3]
+      end
+
+      result2 = Monad.do(Either) do |&bind|
+        bind.(Right[1])
+        bind.(Left[2])
+
+        Right[3]
+      end
+
+      result3 = Monad.do(Maybe) do |&bind|
+        bind.(Just[1])
+        bind.(Just[2])
+
+        Just[3]
+      end
+
+      result4 = Monad.do(Maybe) do |&bind|
+        bind.(Just[1])
+        bind.(None[])
+
+        Just[3]
+      end
+
+      _(result1).must_equal Right[3]
+      _(result2).must_equal Left[2]
+      _(result3).must_equal Just[3]
+      _(result4).must_equal None[]
+    end
+
+    it "is expected to raise if binded expression is not expected type" do
+      _ {
+        Monad.do(Either) do |&bind|
+          bind.(Just[1])
+
+          Right[1]
+        end
+      }.must_raise TypeError
+    end
+
+    it "is expected to raise if binded expression is not expected type" do
+      _ {
+        Monad.do(Either) do |&bind|
+          bind.(Just[1])
+
+          Right[1]
+        end
+      }.must_raise TypeError
+    end
+
+    it "is expected to raise if last expression is not expected type" do
+      _ {
+        Monad.do(Maybe) do |&bind|
+          bind.(Just[1])
+          bind.(Just[2])
+
+          Left[1]
         end
       }.must_raise TypeError
     end
